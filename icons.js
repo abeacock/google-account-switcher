@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * icons.js — shared icon-drawing utilities
  *

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * utils.js — shared utility helpers
  */

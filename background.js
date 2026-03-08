@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * background.js — service worker
  *

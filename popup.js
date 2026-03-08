@@ -37,8 +37,6 @@
  *   when cookie access and network requests both fail.
  */
 
-'use strict';
-
 import { EMAIL_RE, getIndexFromUrl } from './utils.js';
 import {
   ICON_BG_COLORS,
@@ -99,7 +97,6 @@ function detectViaIdentity() {
           email: info.email.toLowerCase(),
           name: '',
           active: true,
-          source: 'Chrome Profile',
           index: null,
         },
       ]);
@@ -130,7 +127,6 @@ function detectViaCookie() {
               email,
               name: '',
               active: false,
-              source: 'Cookie',
               index: null,
             }))
           );
@@ -220,7 +216,6 @@ function parseListAccountsResponse(rawText) {
         email: email.toLowerCase(),
         name,
         active,
-        source: 'ListAccounts',
         index: idx,
       };
     })
@@ -271,7 +266,7 @@ async function detectViaTabTitles() {
 
       const index = getIndexFromUrl(tab.url);
 
-      accounts.push({ email, name: '', active: false, source: 'Tab', index });
+      accounts.push({ email, name: '', active: false, index });
     }
     return accounts;
   } catch {
@@ -297,8 +292,6 @@ function mergeAccounts(results) {
         if (account.index !== null && existing.index === null) {
           existing.index = account.index;
         }
-        // Prefer ListAccounts as source since it's most reliable
-        if (account.source === 'ListAccounts') existing.source = 'ListAccounts';
       }
     }
   }
