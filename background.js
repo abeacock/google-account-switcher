@@ -25,10 +25,17 @@ function drawFourSquareImageData(size) {
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext('2d');
   const half = size / 2;
+
+  // Clip all drawing to a circle
+  ctx.beginPath();
+  ctx.arc(half, half, half, 0, Math.PI * 2);
+  ctx.clip();
+
   ctx.fillStyle = '#4285F4'; ctx.fillRect(0,    0,    half, half); // top-left:     blue
   ctx.fillStyle = '#EA4335'; ctx.fillRect(half, 0,    half, half); // top-right:    red
   ctx.fillStyle = '#FBBC05'; ctx.fillRect(0,    half, half, half); // bottom-left:  yellow
   ctx.fillStyle = '#34A853'; ctx.fillRect(half, half, half, half); // bottom-right: green
+
   return ctx.getImageData(0, 0, size, size);
 }
 
