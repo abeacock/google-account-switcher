@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Google Account Switcher",
+  "version": "1.0.0",
+  "description": "Detect and switch between all active Google accounts in your browser.",
+  "permissions": [
+    "identity",
+    "cookies",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Google Account Switcher"
+  }
+}
