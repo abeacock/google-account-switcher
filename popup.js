@@ -39,9 +39,17 @@
 
 'use strict';
 
+import { EMAIL_RE, getIndexFromUrl } from './utils.js';
+import {
+  ICON_BG_COLORS,
+  ICON_TEXT_COLORS,
+  ICON_SIZES,
+  drawFourSquareImageData,
+  drawIconImageData,
+} from './icons.js';
+
 /* ── Constants ─────────────────────────────────────────────────────────────── */
 
-const COLOR_COUNT = 5;
 const STORAGE_KEY = 'knownAccounts';
 const LIST_ACCOUNTS_URL =
   'https://accounts.google.com/ListAccounts?gpsia=1&source=ogb&json=standard';
@@ -50,23 +58,6 @@ const SWITCH_BASE_URL = 'https://myaccount.google.com/u/';
 const CHOOSER_URL = 'https://accounts.google.com/AccountChooser';
 
 /* ── URL account-index helpers ──────────────────────────────────────────────── */
-
-/**
- * Extracts the Google account index from a tab URL, supporting two patterns:
- *   /u/N/      — Gmail, Drive, Calendar, Keep, Chat, …
- *   ?authuser=N — Meet, and other services that use a query parameter
- * Returns the integer index, or null if neither pattern is present.
- */
-function getIndexFromUrl(url) {
-  if (!url) return null;
-  const uMatch = url.match(/\/u\/(\d+)\//);
-  if (uMatch) return parseInt(uMatch[1], 10);
-  try {
-    const param = new URL(url).searchParams.get('authuser');
-    if (param !== null) return parseInt(param, 10);
-  } catch { /* ignore malformed URLs */ }
-  return null;
-}
 
 /**
  * Returns a copy of `url` with the account index replaced by `newIndex`,
@@ -91,18 +82,6 @@ function replaceIndexInUrl(url, newIndex) {
 
 const listEl = document.getElementById('accountList');
 const btnRefresh = document.getElementById('btnRefresh');
-const toastEl = document.getElementById('toast');
-
-/* ── Toast ──────────────────────────────────────────────────────────────────── */
-
-let toastTimer = null;
-
-function showToast(message) {
-  clearTimeout(toastTimer);
-  toastEl.textContent = message;
-  toastEl.classList.add('visible');
-  toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2800);
-}
 
 /* ── Detection: Method 1 — Chrome Identity API ─────────────────────────────── */
 
@@ -280,7 +259,6 @@ async function detectViaListAccounts() {
 async function detectViaTabTitles() {
   try {
     const tabs = await chrome.tabs.query({ url: 'https://*.google.com/*' });
-    const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/;
     const seen = new Set();
     const accounts = [];
 
@@ -360,13 +338,13 @@ function getName(account) {
 
 function buildCard(account, colorIndex, canSwitch) {
   const card = document.createElement('div');
-  card.className = `account-card${account.active ? ` is-active color-${(account.index !== null ? account.index : colorIndex) % COLOR_COUNT}` : ''}`;
+  card.className = `account-card${account.active ? ` is-active color-${(account.index !== null ? account.index : colorIndex) % ICON_BG_COLORS.length}` : ''}`;
 
   // Avatar
   const avatar = document.createElement('div');
   // Use the Google account index for colour so it always matches the toolbar icon.
   // Fall back to sorted position (colorIndex) for accounts without a known index.
-  const avatarColor = (account.index !== null ? account.index : colorIndex) % COLOR_COUNT;
+  const avatarColor = (account.index !== null ? account.index : colorIndex) % ICON_BG_COLORS.length;
   avatar.className = `avatar color-${avatarColor}`;
   avatar.textContent = account.index !== null ? String(account.index) : getInitial(account);
 
@@ -490,7 +468,6 @@ async function resolveActiveAccount(accounts) {
     }
 
     // 2. Match by email in tab title
-    const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/;
     const emailMatch = tab.title?.match(EMAIL_RE);
     if (emailMatch) {
       const email = emailMatch[0].toLowerCase();
@@ -508,53 +485,12 @@ async function resolveActiveAccount(accounts) {
 
 /* ── Dynamic action icon ────────────────────────────────────────────────────── */
 
-const ICON_BG_COLORS   = ['#4285F4', '#9c27b0', '#34A853', '#FBBC05', '#EA4335'];
-const ICON_TEXT_COLORS = ['#ffffff', '#ffffff', '#ffffff', '#1a1a1a', '#ffffff'];
-
-function drawFourSquareImageData(size) {
+const createCanvas = (size) => {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  const half = size / 2;
-
-  // Clip all drawing to a circle
-  ctx.beginPath();
-  ctx.arc(half, half, half, 0, Math.PI * 2);
-  ctx.clip();
-
-  ctx.fillStyle = '#4285F4'; ctx.fillRect(0,    0,    half, half); // top-left:     blue
-  ctx.fillStyle = '#EA4335'; ctx.fillRect(half, 0,    half, half); // top-right:    red
-  ctx.fillStyle = '#FBBC05'; ctx.fillRect(0,    half, half, half); // bottom-left:  yellow
-  ctx.fillStyle = '#34A853'; ctx.fillRect(half, half, half, half); // bottom-right: green
-  return ctx.getImageData(0, 0, size, size);
-}
-
-function drawIconImageData(size, label, bgColor, fgColor) {
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-
-  // Full-size circle
-  const half = size / 2;
-  ctx.fillStyle = bgColor;
-  ctx.beginPath();
-  ctx.arc(half, half, half, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Label — slightly larger font for single-char, smaller for two-char (index ≥ 10)
-  const fontSize = label.length > 1 ? Math.round(size * 0.75) : Math.round(size * 0.90);
-  ctx.fillStyle = fgColor;
-  ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  const m = ctx.measureText(label);
-  const y = size / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
-  ctx.fillText(label, size / 2, y);
-
-  return ctx.getImageData(0, 0, size, size);
-}
+  return canvas;
+};
 
 function updateActionIcon(accounts) {
   const active = accounts.find((a) => a.active);
@@ -565,12 +501,12 @@ function updateActionIcon(accounts) {
     const label   = active.index !== null ? String(active.index) : '?';
     const bgColor = ICON_BG_COLORS[colorIdx];
     const fgColor = ICON_TEXT_COLORS[colorIdx];
-    for (const size of [16, 32, 48, 128]) {
-      imageData[size] = drawIconImageData(size, label, bgColor, fgColor);
+    for (const size of ICON_SIZES) {
+      imageData[size] = drawIconImageData(size, label, bgColor, fgColor, createCanvas);
     }
   } else {
-    for (const size of [16, 32, 48, 128]) {
-      imageData[size] = drawFourSquareImageData(size);
+    for (const size of ICON_SIZES) {
+      imageData[size] = drawFourSquareImageData(size, createCanvas);
     }
   }
   chrome.action.setIcon({ imageData });

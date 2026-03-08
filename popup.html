@@ -20,9 +20,6 @@
       --text-primary: #e8e8f0;
       --text-secondary: #8888a0;
       --text-mono: #a0b4cc;
-      --badge-bg: rgba(78, 140, 255, 0.18);
-      --badge-text: #7ab3ff;
-      --toast-bg: #252530;
       --radius: 10px;
       --radius-sm: 6px;
 
@@ -151,7 +148,6 @@
       border-radius: var(--radius);
       background: var(--surface);
       border: 1px solid var(--border);
-      border-left-width: 1px;
       transition: background 0.15s, border-color 0.15s;
       position: relative;
     }
@@ -224,7 +220,6 @@
       padding: 2px 7px;
       border-radius: 20px;
       border: 1px solid;
-      font-family: 'DM Sans', sans-serif;
       font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
@@ -244,37 +239,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
-    /* ── Switch button ──────────────────────────────── */
-    .btn-switch {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 5px 10px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-secondary);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      white-space: nowrap;
-      flex-shrink: 0;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    .btn-switch.color-0:hover { background: rgba(66,133,244,0.15);  color: #4285F4; border-color: #4285F4; }
-    .btn-switch.color-1:hover { background: rgba(156,39,176,0.15);  color: #c060d8; border-color: #9c27b0; }
-    .btn-switch.color-2:hover { background: rgba(52,168,83,0.15);   color: #34A853; border-color: #34A853; }
-    .btn-switch.color-3:hover { background: rgba(251,188,5,0.15);   color: #c49300; border-color: #FBBC05; }
-    .btn-switch.color-4:hover { background: rgba(234,67,53,0.15);   color: #EA4335; border-color: #EA4335; }
-
-    .btn-switch.color-0:active { background: rgba(66,133,244,0.25);  }
-    .btn-switch.color-1:active { background: rgba(156,39,176,0.25);  }
-    .btn-switch.color-2:active { background: rgba(52,168,83,0.25);   }
-    .btn-switch.color-3:active { background: rgba(251,188,5,0.25);   }
-    .btn-switch.color-4:active { background: rgba(234,67,53,0.25);   }
 
     /* ── Loading state ──────────────────────────────── */
     .loading-state {
@@ -331,32 +295,6 @@
       line-height: 1.5;
       max-width: 240px;
     }
-
-    /* ── Toast ──────────────────────────────────────── */
-    .toast {
-      position: fixed;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%) translateY(60px);
-      background: var(--toast-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 9px 16px;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-primary);
-      white-space: nowrap;
-      opacity: 0;
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
-      pointer-events: none;
-      z-index: 999;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    }
-
-    .toast.visible {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
   </style>
 </head>
 <body>
@@ -378,8 +316,6 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
-  <script src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>
