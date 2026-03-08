@@ -517,6 +517,12 @@ function drawFourSquareImageData(size) {
   canvas.height = size;
   const ctx = canvas.getContext('2d');
   const half = size / 2;
+
+  // Clip all drawing to a circle
+  ctx.beginPath();
+  ctx.arc(half, half, half, 0, Math.PI * 2);
+  ctx.clip();
+
   ctx.fillStyle = '#4285F4'; ctx.fillRect(0,    0,    half, half); // top-left:     blue
   ctx.fillStyle = '#EA4335'; ctx.fillRect(half, 0,    half, half); // top-right:    red
   ctx.fillStyle = '#FBBC05'; ctx.fillRect(0,    half, half, half); // bottom-left:  yellow
@@ -530,9 +536,12 @@ function drawIconImageData(size, label, bgColor, fgColor) {
   canvas.height = size;
   const ctx = canvas.getContext('2d');
 
-  // Full-size square
+  // Full-size circle
+  const half = size / 2;
   ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, size, size);
+  ctx.beginPath();
+  ctx.arc(half, half, half, 0, Math.PI * 2);
+  ctx.fill();
 
   // Label — slightly larger font for single-char, smaller for two-char (index ≥ 10)
   const fontSize = label.length > 1 ? Math.round(size * 0.75) : Math.round(size * 0.90);
