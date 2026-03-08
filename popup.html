@@ -63,16 +63,11 @@
     }
 
     .header-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: conic-gradient(
-        var(--g-blue) 0deg 90deg,
-        var(--g-red) 90deg 180deg,
-        var(--g-yellow) 180deg 270deg,
-        var(--g-green) 270deg 360deg
-      );
-      animation: spin 2.4s linear infinite;
+      width: 16px;
+      height: 16px;
+      background:
+        linear-gradient(to right, var(--g-blue) 50%, var(--g-red) 50%) top / 100% 50% no-repeat,
+        linear-gradient(to right, var(--g-yellow) 50%, var(--g-green) 50%) bottom / 100% 50% no-repeat;
       flex-shrink: 0;
     }
 
@@ -82,7 +77,7 @@
 
     .header-title {
       flex: 1;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 600;
       color: var(--text-primary);
       letter-spacing: 0.01em;
