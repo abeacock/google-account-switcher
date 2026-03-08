@@ -51,9 +51,12 @@ function drawIconImageData(size, label, bgColor, fgColor) {
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext('2d');
 
-  // Full-size square
+  // Full-size circle
+  const half = size / 2;
   ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, size, size);
+  ctx.beginPath();
+  ctx.arc(half, half, half, 0, Math.PI * 2);
+  ctx.fill();
 
   // Label
   const fontSize = label.length > 1 ? Math.round(size * 0.75) : Math.round(size * 0.90);
