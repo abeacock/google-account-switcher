@@ -511,6 +511,19 @@ async function resolveActiveAccount(accounts) {
 const ICON_BG_COLORS   = ['#4285F4', '#9c27b0', '#34A853', '#FBBC05', '#EA4335'];
 const ICON_TEXT_COLORS = ['#ffffff', '#ffffff', '#ffffff', '#1a1a1a', '#ffffff'];
 
+function drawFourSquareImageData(size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const half = size / 2;
+  ctx.fillStyle = '#4285F4'; ctx.fillRect(0,    0,    half, half); // top-left:     blue
+  ctx.fillStyle = '#EA4335'; ctx.fillRect(half, 0,    half, half); // top-right:    red
+  ctx.fillStyle = '#FBBC05'; ctx.fillRect(0,    half, half, half); // bottom-left:  yellow
+  ctx.fillStyle = '#34A853'; ctx.fillRect(half, half, half, half); // bottom-right: green
+  return ctx.getImageData(0, 0, size, size);
+}
+
 function drawIconImageData(size, label, bgColor, fgColor) {
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -537,21 +550,19 @@ function drawIconImageData(size, label, bgColor, fgColor) {
 function updateActionIcon(accounts) {
   const active = accounts.find((a) => a.active);
 
-  let label, bgColor, fgColor;
+  const imageData = {};
   if (active) {
     const colorIdx = (active.index ?? accounts.indexOf(active)) % ICON_BG_COLORS.length;
-    label   = active.index !== null ? String(active.index) : '?';
-    bgColor = ICON_BG_COLORS[colorIdx];
-    fgColor = ICON_TEXT_COLORS[colorIdx];
+    const label   = active.index !== null ? String(active.index) : '?';
+    const bgColor = ICON_BG_COLORS[colorIdx];
+    const fgColor = ICON_TEXT_COLORS[colorIdx];
+    for (const size of [16, 32, 48, 128]) {
+      imageData[size] = drawIconImageData(size, label, bgColor, fgColor);
+    }
   } else {
-    label   = '?';
-    bgColor = '#55555f';
-    fgColor = '#ffffff';
-  }
-
-  const imageData = {};
-  for (const size of [16, 32, 48, 128]) {
-    imageData[size] = drawIconImageData(size, label, bgColor, fgColor);
+    for (const size of [16, 32, 48, 128]) {
+      imageData[size] = drawFourSquareImageData(size);
+    }
   }
   chrome.action.setIcon({ imageData });
 }

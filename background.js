@@ -21,6 +21,25 @@ const ICON_TEXT_COLORS = ['#ffffff', '#ffffff', '#ffffff', '#1a1a1a', '#ffffff']
 
 /* ── Icon drawing ───────────────────────────────────────────────────────────── */
 
+function drawFourSquareImageData(size) {
+  const canvas = new OffscreenCanvas(size, size);
+  const ctx = canvas.getContext('2d');
+  const half = size / 2;
+  ctx.fillStyle = '#4285F4'; ctx.fillRect(0,    0,    half, half); // top-left:     blue
+  ctx.fillStyle = '#EA4335'; ctx.fillRect(half, 0,    half, half); // top-right:    red
+  ctx.fillStyle = '#FBBC05'; ctx.fillRect(0,    half, half, half); // bottom-left:  yellow
+  ctx.fillStyle = '#34A853'; ctx.fillRect(half, half, half, half); // bottom-right: green
+  return ctx.getImageData(0, 0, size, size);
+}
+
+function applyFourSquareIcon() {
+  const imageData = {};
+  for (const size of [16, 32, 48, 128]) {
+    imageData[size] = drawFourSquareImageData(size);
+  }
+  chrome.action.setIcon({ imageData });
+}
+
 function drawIconImageData(size, label, bgColor, fgColor) {
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext('2d');
@@ -70,7 +89,7 @@ function setIconFromTab(tab) {
     applyIcon(String(idx), ICON_BG_COLORS[c], ICON_TEXT_COLORS[c]);
     return;
   }
-  applyIcon('?', '#55555f', '#ffffff');
+  applyFourSquareIcon();
 }
 
 async function refreshIcon() {
@@ -78,7 +97,7 @@ async function refreshIcon() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     setIconFromTab(tab ?? null);
   } catch {
-    applyIcon('?', '#55555f', '#ffffff');
+    applyFourSquareIcon();
   }
 }
 
