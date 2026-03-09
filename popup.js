@@ -54,6 +54,7 @@ const LIST_ACCOUNTS_URL =
 const ACCOUNT_CHOOSER_URL = 'https://accounts.google.com';
 const SWITCH_BASE_URL = 'https://myaccount.google.com/u/';
 const CHOOSER_URL = 'https://accounts.google.com/AccountChooser';
+const GMAIL_BASE_URL = 'https://mail.google.com/mail/u/';
 
 /* ── URL account-index helpers ──────────────────────────────────────────────── */
 
@@ -372,12 +373,19 @@ function buildCard(account, colorIndex, canSwitch) {
   card.appendChild(avatar);
   card.appendChild(info);
 
-  if (!account.active && canSwitch) {
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', () => switchToAccount(account));
+  if (canSwitch) {
+    if (!account.active) {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => switchToAccount(account));
+      card.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        openAccountInNewTab(account);
+      });
+    }
+  } else {
     card.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      openAccountInNewTab(account);
+      openGmailInNewTab(account);
     });
   }
 
@@ -544,6 +552,14 @@ async function openAccountInNewTab(account) {
     const { url } = await buildSwitchUrl(account);
     chrome.tabs.create({ url });
   } catch { /* ignore */ }
+  window.close();
+}
+
+function openGmailInNewTab(account) {
+  const url = account.index !== null
+    ? `${GMAIL_BASE_URL}${account.index}/`
+    : `${CHOOSER_URL}?Email=${encodeURIComponent(account.email)}&continue=${encodeURIComponent(GMAIL_BASE_URL)}`;
+  chrome.tabs.create({ url });
   window.close();
 }
 
