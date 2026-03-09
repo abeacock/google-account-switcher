@@ -375,7 +375,10 @@ function buildCard(account, colorIndex, canSwitch) {
   if (!account.active && canSwitch) {
     card.style.cursor = 'pointer';
     card.addEventListener('click', () => switchToAccount(account));
-
+    card.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      openAccountInNewTab(account);
+    });
   }
 
   return card;
@@ -507,30 +510,39 @@ function updateActionIcon(accounts) {
 
 /* ── Account switching ──────────────────────────────────────────────────────── */
 
+async function buildSwitchUrl(account) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const switched = account.index !== null ? replaceIndexInUrl(tab?.url, account.index) : null;
+  if (switched) {
+    // Best case: swap the index directly in the current URL (/u/N/ or ?authuser=N).
+    // Keeps the user on the same page but under the target account, e.g.:
+    //   mail.google.com/mail/u/0/#inbox       → /u/1/#inbox
+    //   meet.google.com/abc-def?authuser=0    → ?authuser=1
+    return { url: switched, tabId: tab.id };
+  }
+  // Fallback: send through AccountChooser then back to the same URL.
+  // Works for Google services that don't embed /u/N/ (Docs, etc.)
+  const continueUrl = (tab?.url?.startsWith('https://'))
+    ? tab.url
+    : `${SWITCH_BASE_URL}${account.index ?? ''}/`;
+  return {
+    url: `${CHOOSER_URL}?Email=${encodeURIComponent(account.email)}&continue=${encodeURIComponent(continueUrl)}`,
+    tabId: tab?.id,
+  };
+}
+
 async function switchToAccount(account) {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) return;
+    const { url, tabId } = await buildSwitchUrl(account);
+    if (tabId) chrome.tabs.update(tabId, { url });
+  } catch { /* ignore */ }
+  window.close();
+}
 
-    let url;
-    const switched = account.index !== null ? replaceIndexInUrl(tab.url, account.index) : null;
-
-    if (switched) {
-      // Best case: swap the index directly in the current URL (/u/N/ or ?authuser=N).
-      // Keeps the user on the same page but under the target account, e.g.:
-      //   mail.google.com/mail/u/0/#inbox       → /u/1/#inbox
-      //   meet.google.com/abc-def?authuser=0    → ?authuser=1
-      url = switched;
-    } else {
-      // Fallback: send the current tab through AccountChooser then back to the
-      // same URL. Works for Google services that don't embed /u/N/ (Docs, etc.)
-      const continueUrl = (tab.url?.startsWith('https://'))
-        ? tab.url
-        : `${SWITCH_BASE_URL}${account.index ?? ''}/`;
-      url = `${CHOOSER_URL}?Email=${encodeURIComponent(account.email)}&continue=${encodeURIComponent(continueUrl)}`;
-    }
-
-    chrome.tabs.update(tab.id, { url });
+async function openAccountInNewTab(account) {
+  try {
+    const { url } = await buildSwitchUrl(account);
+    chrome.tabs.create({ url });
   } catch { /* ignore */ }
   window.close();
 }
